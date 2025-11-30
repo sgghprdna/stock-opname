@@ -2,173 +2,67 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aplikasi Stock Opname</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Stock Opname Assistant</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Mencegah zoom saat input di iPhone */
+        /* Mencegah zoom saat input di iPhone dan menghilangkan spinner di input number */
         input[type="number"], select, textarea { font-size: 16px; }
-        .sticky-col { position: sticky; left: 0; z-index: 10; background-color: #f9fafb; }
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
+        .touch-manipulation { touch-action: manipulation; }
     </style>
-</head>
-<body class="bg-gray-100 min-h-screen pb-20" x-data="stockApp()">
-
-    <header class="bg-blue-600 text-white p-4 shadow-md sticky top-0 z-20">
-        <div class="flex justify-between items-center max-w-4xl mx-auto">
-            <h1 class="text-lg font-bold">Stock Opname</h1>
-            <div class="space-x-2">
-                <button @click="showCalc = true" class="bg-blue-500 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm border border-blue-400">
-                    🧮 Kalkulator
-                </button>
-            </div>
-        </div>
-    </header>
-
-    <main class="max-w-4xl mx-auto p-4">
-        
-        <div class="bg-white p-4 rounded-lg shadow mb-4" x-show="items.length === 0">
-            <h2 class="text-gray-700 font-semibold mb-2">1. Upload Data Barang</h2>
-            <p class="text-sm text-gray-500 mb-4">Upload file Excel (.xlsx). Pastikan baris pertama adalah header (Nama Barang).</p>
-            <input type="file" id="upload" @change="handleFileUpload" accept=".xlsx, .xls" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"/>
-        </div>
-
-        <div class="flex flex-wrap gap-2 mb-4" x-show="items.length > 0">
-            <button @click="copyTotals()" class="flex-1 bg-green-600 text-white py-2 px-4 rounded shadow hover:bg-green-700 text-sm font-semibold">
-                📋 Salin Semua Total
-            </button>
-            <button @click="resetApp()" class="bg-red-100 text-red-600 py-2 px-4 rounded shadow hover:bg-red-200 text-sm">
-                Reset
-            </button>
-        </div>
-
-        <div class="space-y-4" x-show="items.length > 0">
-            <template x-for="(item, index) in items" :key="index">
-                <div class="bg-white rounded-lg shadow p-4 border-l-4 border-blue-500">
-                    <div class="mb-3">
-                        <span class="text-xs text-gray-400 font-mono" x-text="index + 1"></span>
-                        <h3 class="font-bold text-gray-800 text-lg leading-tight" x-text="item.name"></h3>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-3 mb-3">
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-500 uppercase">Rak Utama</label>
-                            <input type="number" x-model.number="item.rak" class="w-full mt-1 p-3 border rounded-lg bg-blue-50 text-xl font-bold text-blue-800 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="0">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-500 uppercase">Total Final</label>
-                            <div class="w-full mt-1 p-3 border rounded-lg bg-gray-800 text-white text-xl font-bold text-center" x-text="calculateTotal(item)">0</div>
-                        </div>
-                    </div>
-
-                    <div class="bg-gray-50 p-3 rounded-lg border border-gray-200">
-                        <label class="block text-xs font-semibold text-gray-500 mb-2">Muntahan / Palet Luar (Opsional)</label>
-                        <div class="grid grid-cols-4 gap-2">
-                            <input type="number" x-model.number="item.m1" class="p-2 border rounded text-center text-sm focus:border-blue-500 outline-none" placeholder="1">
-                            <input type="number" x-model.number="item.m2" class="p-2 border rounded text-center text-sm focus:border-blue-500 outline-none" placeholder="2">
-                            <input type="number" x-model.number="item.m3" class="p-2 border rounded text-center text-sm focus:border-blue-500 outline-none" placeholder="3">
-                            <input type="number" x-model.number="item.m4" class="p-2 border rounded text-center text-sm focus:border-blue-500 outline-none" placeholder="4">
-                        </div>
-                    </div>
-                </div>
-            </template>
-        </div>
-    </main>
-
-    <div x-show="showCalc" style="display: none;" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-xs overflow-hidden" @click.away="showCalc = false">
-            <div class="bg-gray-100 p-3 flex justify-between items-center border-b">
-                <span class="font-bold text-gray-700">Kalkulator</span>
-                <button @click="showCalc = false" class="text-gray-500 text-2xl">&times;</button>
-            </div>
-            <div class="p-4">
-                <input type="text" x-model="calcDisplay" readonly class="w-full mb-4 p-3 text-right text-2xl font-mono bg-gray-50 border rounded" placeholder="0">
-                <div class="grid grid-cols-4 gap-2">
-                    <button @click="calcDisplay = ''" class="col-span-2 p-3 bg-red-100 text-red-600 rounded font-bold">C</button>
-                    <button @click="calcAppend('/')" class="p-3 bg-gray-200 rounded font-bold">÷</button>
-                    <button @click="calcAppend('*')" class="p-3 bg-gray-200 rounded font-bold">×</button>
-                    
-                    <button @click="calcAppend('7')" class="p-3 bg-white border rounded font-bold">7</button>
-                    <button @click="calcAppend('8')" class="p-3 bg-white border rounded font-bold">8</button>
-                    <button @click="calcAppend('9')" class="p-3 bg-white border rounded font-bold">9</button>
-                    <button @click="calcAppend('-')" class="p-3 bg-gray-200 rounded font-bold">-</button>
-
-                    <button @click="calcAppend('4')" class="p-3 bg-white border rounded font-bold">4</button>
-                    <button @click="calcAppend('5')" class="p-3 bg-white border rounded font-bold">5</button>
-                    <button @click="calcAppend('6')" class="p-3 bg-white border rounded font-bold">6</button>
-                    <button @click="calcAppend('+')" class="p-3 bg-gray-200 rounded font-bold">+</button>
-
-                    <button @click="calcAppend('1')" class="p-3 bg-white border rounded font-bold">1</button>
-                    <button @click="calcAppend('2')" class="p-3 bg-white border rounded font-bold">2</button>
-                    <button @click="calcAppend('3')" class="p-3 bg-white border rounded font-bold">3</button>
-                    <button @click="calcResult()" class="row-span-2 p-3 bg-blue-600 text-white rounded font-bold">=</button>
-
-                    <button @click="calcAppend('0')" class="col-span-2 p-3 bg-white border rounded font-bold">0</button>
-                    <button @click="calcAppend('.')" class="p-3 bg-white border rounded font-bold">.</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <script>
-        function stockApp() {
-            return {
-                items: [],
-                showCalc: false,
-                calcDisplay: '',
-
-                handleFileUpload(e) {
-                    const file = e.target.files[0];
-                    const reader = new FileReader();
-                    reader.onload = (event) => {
-                        const data = new Uint8Array(event.target.result);
-                        const workbook = XLSX.read(data, { type: 'array' });
-                        const sheetName = workbook.SheetNames[0];
-                        const sheet = workbook.Sheets[sheetName];
-                        const json = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-                        
-                        // Skip header (row 0) and map data
-                        this.items = json.slice(1).map(row => ({
-                            name: row[0] || 'Item Tanpa Nama',
-                            rak: '', // Kosongkan awal
-                            m1: '', m2: '', m3: '', m4: ''
-                        })).filter(item => item.name); // Hapus baris kosong
-                    };
-                    reader.readAsArrayBuffer(file);
-                },
-
-                calculateTotal(item) {
-                    const rak = Number(item.rak) || 0;
-                    const m1 = Number(item.m1) || 0;
-                    const m2 = Number(item.m2) || 0;
-                    const m3 = Number(item.m3) || 0;
-                    const m4 = Number(item.m4) || 0;
-                    return rak + m1 + m2 + m3 + m4;
-                },
-
-                copyTotals() {
-                    const totals = this.items.map(item => this.calculateTotal(item)).join('\n');
-                    navigator.clipboard.writeText(totals).then(() => {
-                        alert('✅ Total berhasil disalin! Silakan PASTE di Excel.');
-                    });
-                },
-
-                resetApp() {
-                    if(confirm('Hapus semua data dan upload ulang?')) {
-                        this.items = [];
-                        document.getElementById('upload').value = '';
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        darkInput: '#374151', // Warna abu-abu gelap untuk input muntahan
                     }
-                },
-
-                // Calculator Functions
-                calcAppend(val) { this.calcDisplay += val; },
-                calcResult() { 
-                    try { this.calcDisplay = eval(this.calcDisplay); } 
-                    catch { this.calcDisplay = 'Error'; } 
                 }
             }
         }
     </script>
-</body>
-</html>
+</head>
+<body class="bg-gray-100 min-h-screen pb-24" x-data="stockApp()">
+
+    <header class="bg-white p-4 shadow-sm sticky top-0 z-30">
+        <div class="max-w-5xl mx-auto">
+            <div class="flex justify-between items-center mb-4">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-blue-600 p-2 rounded-lg text-white">
+                        <i class="fas fa-clipboard-list text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-gray-800 leading-none">Stock Opname</h1>
+                        <p class="text-sm text-gray-500">Assistant</p>
+                    </div>
+                </div>
+                <button @click="resetApp()" x-show="items.length > 0" class="text-gray-400 hover:text-red-500 transition p-2">
+                    <i class="far fa-trash-alt text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="relative" x-show="items.length > 0">
+                <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                <input type="text" x-model="searchQuery" placeholder="Cari nama item..." class="w-full pl-10 pr-4 py-3 rounded-lg bg-gray-100 border-transparent focus:border-blue-500 focus:bg-white focus:ring-0 text-sm transition">
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto p-4">
+        <div x-show="items.length === 0" class="flex flex-col items-center justify-center py-12 px-4 border-2 border-dashed border-gray-300 rounded-xl bg-white text-center">
+            <i class="fas fa-file-excel text-5xl text-green-500 mb-4"></i>
+            <h2 class="text-xl font-semibold text-gray-700 mb-2">Upload File Excel</h2>
+            <p class="text-gray-500 mb-6 max-w-md">Pastikan kolom pertama di file Excel Anda berisi nama barang/SKU.</p>
+            <label class="cursor-pointer bg-blue-600 text-white px-6 py-3 rounded-lg shadow hover:bg-blue-700 transition font-medium">
+                <span>Pilih File .xlsx</span>
+                <input type="file" id="upload" @change="handleFileUpload" accept=".xlsx, .xls" class="hidden"/>
+            </label>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden" x-show="filteredItems.length > 0">
