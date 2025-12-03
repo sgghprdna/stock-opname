@@ -3,114 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Stock Opname V7 (Backup/Restore)</title>
+    <title>Casa & Imago Frame</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        [x-cloak] { display: none !important; }
+        
+        /* Input Number Rapi (Hilangkan Spinner) */
         input[type=number]::-webkit-inner-spin-button, 
         input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         .touch-manipulation { touch-action: manipulation; }
     </style>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script defer src="https://unpkg.com/alpinejs@3.13.3/dist/cdn.min.js"></script>
-</head>
-
-<body class="bg-gray-100 min-h-screen pb-40 font-sans text-gray-800">
-
-    <div x-data="stockApp()">
-        
-        <header class="bg-purple-700 text-white p-4 shadow-md sticky top-0 z-30">
-            <div class="max-w-4xl mx-auto">
-                <div class="flex justify-between items-center mb-3">
-                    <div class="flex items-center gap-2">
-                        <i class="fas fa-boxes text-xl"></i>
-                        <div>
-                            <h1 class="font-bold text-lg leading-none">Stock Opname</h1>
-                            <p class="text-[10px] opacity-80">V7 (Bisa Pindah HP)</p>
-                        </div>
-                    </div>
-                    
-                    <button x-show="items.length > 0" @click="resetApp()" class="text-xs bg-purple-800 hover:bg-purple-900 border border-purple-500 px-3 py-1 rounded transition">
-                        Reset Total
-                    </button>
-                </div>
-
-                <div x-show="items.length > 0" class="flex gap-2 mb-2">
-                    <button @click="downloadBackup()" class="flex-1 bg-white text-purple-700 text-xs font-bold py-2 rounded shadow hover:bg-gray-100 flex items-center justify-center gap-1">
-                        <i class="fas fa-download"></i> Simpan (Backup)
-                    </button>
-                    <label class="flex-1 bg-purple-500 text-white text-xs font-bold py-2 rounded shadow hover:bg-purple-600 cursor-pointer flex items-center justify-center gap-1 border border-purple-400">
-                        <i class="fas fa-upload"></i> Lanjut (Restore)
-                        <input type="file" @change="restoreBackup" accept=".json" class="hidden"/>
-                    </label>
-                </div>
-
-                <div x-show="items.length > 0">
-                    <input type="text" x-model="searchQuery" placeholder="🔍 Cari barang..." class="w-full px-4 py-2 rounded text-gray-800 text-sm focus:outline-none shadow-inner">
-                </div>
-            </div>
-        </header>
-
-        <main class="max-w-4xl mx-auto p-3">
-            
-            <div x-show="items.length === 0" class="mt-6 space-y-4">
+    <script>
+        function stockApp() {
+            return {
+                items: [],
+                searchQuery: '',
+                showCalc: false,
+                calcDisplay: '',
                 
-                <div class="bg-white p-6 rounded-xl shadow text-center border-dashed border-2 border-gray-300">
-                    <div class="w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-3">
-                        <i class="fas fa-file-excel text-2xl"></i>
-                    </div>
-                    <h2 class="text-base font-bold text-gray-800">Mulai Baru (Excel)</h2>
-                    <p class="text-xs text-gray-500 mb-4">Upload master data .xlsx</p>
-                    <label class="block w-full bg-green-600 text-white font-bold py-3 rounded-lg shadow cursor-pointer hover:bg-green-700 active:scale-95 transition text-sm">
-                        📂 Pilih Excel
-                        <input type="file" @change="handleFileUpload" accept=".xlsx, .xls" class="hidden"/>
-                    </label>
-                </div>
+                get filteredItems() {
+                    if (this.searchQuery === '') return this.items;
+                    return this.items.filter(i => i.name.toLowerCase().includes(this.searchQuery.toLowerCase()));
+                },
 
-                <div class="bg-white p-6 rounded-xl shadow text-center border-dashed border-2 border-purple-300">
-                    <div class="w-12 h-12 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center mx-auto mb-3">
-                        <i class="fas fa-history text-2xl"></i>
-                    </div>
-                    <h2 class="text-base font-bold text-gray-800">Lanjutkan Pekerjaan</h2>
-                    <p class="text-xs text-gray-500 mb-4">Upload file .json backup</p>
-                    <label class="block w-full bg-purple-600 text-white font-bold py-3 rounded-lg shadow cursor-pointer hover:bg-purple-700 active:scale-95 transition text-sm">
-                        📂 Pilih File Backup
-                        <input type="file" @change="restoreBackup" accept=".json" class="hidden"/>
-                    </label>
-                </div>
+                // 1. Upload Excel (Master Data)
+                handleFileUpload(e) {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        try {
+                            const data = new Uint8Array(event.target.result);
+                            const workbook = XLSX.read(data, { type: 'array' });
+                            const sheetName = workbook.SheetNames[0];
+                            const json = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1 });
+                            this.items = json.slice(1).map((row, i) => ({
+                                id: Date.now() + i,
+                                name: row[0] || 'Tanpa Nama',
+                                rak: '', m1: '', m2: '', m3: '', m4: ''
+                            })).filter(i => i.name && i.name !== 'Tanpa Nama');
+                            e.target.value = ''; 
+                        } catch (err) { alert("Gagal baca Excel. Pastikan format .xlsx"); }
+                    };
+                    reader.readAsArrayBuffer(file);
+                },
 
-            </div>
-
-            <div class="space-y-3 mt-4" x-show="items.length > 0" style="display: none;">
-                <template x-for="item in filteredItems" :key="item.id">
-                    <div class="bg-white p-3 rounded-lg shadow-sm border-l-4 border-purple-500 flex flex-col md:flex-row gap-2">
-                        <div class="flex-1 min-w-0">
-                            <h3 class="font-bold text-gray-800 text-sm break-words" x-text="item.name"></h3>
-                        </div>
-                        <div class="flex items-center justify-between gap-2 mt-1 md:mt-0">
-                            <div class="text-center">
-                                <span class="text-[9px] text-gray-400 font-bold block md:hidden">RAK</span>
-                                <input type="number" x-model.number="item.rak" class="w-16 h-10 border border-gray-300 rounded text-center font-bold text-lg text-purple-800 focus:border-purple-500 outline-none" placeholder="0">
-                            </div>
-                            <div class="flex gap-1">
-                                <input type="number" x-model.number="item.m1" class="w-9 h-9 bg-gray-700 text-white rounded text-center text-xs outline-none" placeholder="-">
-                                <input type="number" x-model.number="item.m2" class="w-9 h-9 bg-gray-700 text-white rounded text-center text-xs outline-none" placeholder="-">
-                                <input type="number" x-model.number="item.m3" class="w-9 h-9 bg-gray-700 text-white rounded text-center text-xs outline-none" placeholder="-">
-                                <input type="number" x-model.number="item.m4" class="w-9 h-9 bg-gray-700 text-white rounded text-center text-xs outline-none" placeholder="-">
-                            </div>
-                            <div class="w-12 text-center">
-                                <span class="text-[9px] text-gray-400 font-bold block md:hidden">TOTAL</span>
-                                <div class="font-black text-lg text-purple-600" x-text="(Number(item.rak)||0) + (Number(item.m1)||0) + (Number(item.m2)||0) + (Number(item.m3)||0) + (Number(item.m4)||0)">0</div>
-                            </div>
-                        </div>
-                    </div>
-                </template>
-                <div x-show="filteredItems.length === 0" class="text-center py-8 text-gray-400">
-                    <p>Item tidak ditemukan.</p>
-                </div>
-            </div>
-        </main>
-
-        <div class="fixed bottom-6 right-
+                // 2. Download Backup (Simpan JSON)
+                downloadBackup() {
+                    const dataStr = JSON.stringify(this.items);
+                    const blob = new Blob([dataStr], {type: "application/json"});
+                    const url = URL.createObjectURL(blob);
+                    
+                    const now = new Date();
+                    // Format waktu file: backup_casa_imago_jam-menit.json
+                    const time = `${now.getHours()}.${
