@@ -3,79 +3,197 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Stock Opname V5 (Final)</title>
+    <title>Stock Opname V6 (Green)</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Sembunyikan elemen sblm Alpine siap (mencegah kedip), tapi jika JS error, konten tetap bisa dilihat */
-        [x-cloak] { display: none !important; }
-        
-        /* CSS Input Number */
+        /* CSS Wajib agar input number rapi di HP */
         input[type=number]::-webkit-inner-spin-button, 
         input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         .touch-manipulation { touch-action: manipulation; }
     </style>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.13.3/dist/cdn.min.js"></script>
 </head>
 
 <body class="bg-gray-100 min-h-screen pb-40 font-sans text-gray-800">
 
     <div x-data="stockApp()">
         
-        <header class="bg-blue-600 text-white p-4 shadow-md sticky top-0 z-30">
+        <header class="bg-green-600 text-white p-4 shadow-md sticky top-0 z-30">
             <div class="max-w-4xl mx-auto flex justify-between items-center">
                 <div class="flex items-center gap-2">
                     <i class="fas fa-boxes text-xl"></i>
                     <div>
                         <h1 class="font-bold text-lg leading-none">Stock Opname</h1>
-                        <p class="text-[10px] opacity-80">List Mode</p>
+                        <p class="text-[10px]">Versi Hijau (V6)</p>
                     </div>
                 </div>
-                <button x-show="items.length > 0" @click="resetApp()" class="text-sm bg-blue-700 hover:bg-blue-800 px-3 py-1 rounded transition" x-cloak>
-                    <i class="fas fa-redo-alt mr-1"></i> Reset
+                <button x-show="items.length > 0" @click="resetApp()" class="text-sm bg-green-700 hover:bg-green-800 px-3 py-1 rounded transition">
+                    Reset
                 </button>
             </div>
-            
-            <div class="max-w-4xl mx-auto mt-3" x-show="items.length > 0" x-cloak>
-                <input type="text" x-model="searchQuery" placeholder="🔍 Cari nama barang..." class="w-full px-4 py-2 rounded text-gray-800 text-sm focus:outline-none shadow-inner">
+            <div class="max-w-4xl mx-auto mt-3" x-show="items.length > 0">
+                <input type="text" x-model="searchQuery" placeholder="🔍 Cari barang..." class="w-full px-4 py-2 rounded text-gray-800 text-sm focus:outline-none shadow-inner">
             </div>
         </header>
 
         <main class="max-w-4xl mx-auto p-3">
             
             <div x-show="items.length === 0" class="mt-6 bg-white p-6 rounded-xl shadow text-center border-dashed border-2 border-gray-300">
-                <div class="w-16 h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div class="w-16 h-16 bg-green-50 text-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
                     <i class="fas fa-file-excel text-3xl"></i>
                 </div>
-                <h2 class="text-lg font-bold text-gray-800">Upload Data Excel</h2>
-                <p class="text-sm text-gray-500 mb-6">Format .xlsx (Baris 1 = Header)</p>
+                <h2 class="text-lg font-bold text-gray-800">Upload File Excel</h2>
+                <p class="text-sm text-gray-500 mb-6">Pastikan format .xlsx</p>
                 
-                <label class="block w-full bg-blue-600 text-white font-bold py-3 rounded-lg shadow cursor-pointer hover:bg-blue-700 active:scale-95 transition">
+                <label class="block w-full bg-green-600 text-white font-bold py-3 rounded-lg shadow cursor-pointer hover:bg-green-700 active:scale-95 transition">
                     📂 Pilih File
                     <input type="file" @change="handleFileUpload" accept=".xlsx, .xls" class="hidden"/>
                 </label>
             </div>
 
-            <div class="space-y-3 mt-4" x-show="items.length > 0" x-cloak>
-                
+            <div class="space-y-3 mt-4" x-show="items.length > 0" style="display: none;">
                 <template x-for="item in filteredItems" :key="item.id">
-                    <div class="bg-white p-3 rounded-lg shadow-sm border-l-4 border-blue-500 flex flex-col md:flex-row gap-2">
-                        
+                    <div class="bg-white p-3 rounded-lg shadow-sm border-l-4 border-green-500 flex flex-col md:flex-row gap-2">
                         <div class="flex-1 min-w-0">
                             <h3 class="font-bold text-gray-800 text-sm break-words" x-text="item.name"></h3>
                         </div>
-
                         <div class="flex items-center justify-between gap-2 mt-1 md:mt-0">
                             <div class="text-center">
                                 <span class="text-[9px] text-gray-400 font-bold block md:hidden">RAK</span>
-                                <input type="number" x-model.number="item.rak" class="w-16 h-10 border border-gray-300 rounded text-center font-bold text-lg text-blue-800 focus:border-blue-500 outline-none" placeholder="0">
+                                <input type="number" x-model.number="item.rak" class="w-16 h-10 border border-gray-300 rounded text-center font-bold text-lg text-green-800 focus:border-green-500 outline-none" placeholder="0">
                             </div>
-
                             <div class="flex gap-1">
-                                <input type="number" x-model.number="item.m1" class="w-9 h-9 bg-gray-700 text-white rounded text-center text-xs outline-none focus:bg-gray-600" placeholder="-">
-                                <input type="number" x-model.number="item.m2" class="w-9 h-9 bg-gray-700 text-white rounded text-center text-xs outline-none focus:bg-gray-600" placeholder="-">
-                                <input type="number" x-model.number="item.m3" class="w-9 h-9 bg-gray-700 text-white rounded text-center text-xs outline-none focus:bg-gray-600" placeholder="-">
-                                <input type="number" x-model
+                                <input type="number" x-model.number="item.m1" class="w-9 h-9 bg-gray-700 text-white rounded text-center text-xs outline-none" placeholder="-">
+                                <input type="number" x-model.number="item.m2" class="w-9 h-9 bg-gray-700 text-white rounded text-center text-xs outline-none" placeholder="-">
+                                <input type="number" x-model.number="item.m3" class="w-9 h-9 bg-gray-700 text-white rounded text-center text-xs outline-none" placeholder="-">
+                                <input type="number" x-model.number="item.m4" class="w-9 h-9 bg-gray-700 text-white rounded text-center text-xs outline-none" placeholder="-">
+                            </div>
+                            <div class="w-12 text-center">
+                                <span class="text-[9px] text-gray-400 font-bold block md:hidden">TOTAL</span>
+                                <div class="font-black text-lg text-green-600" x-text="(Number(item.rak)||0) + (Number(item.m1)||0) + (Number(item.m2)||0) + (Number(item.m3)||0) + (Number(item.m4)||0)">0</div>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+                <div x-show="filteredItems.length === 0" class="text-center py-8 text-gray-400">
+                    <p>Item tidak ditemukan.</p>
+                </div>
+            </div>
+        </main>
+
+        <div class="fixed bottom-6 right-4 flex flex-col gap-3 z-40" x-show="items.length > 0" style="display: none;">
+            <button @click="showCalc = true" class="w-12 h-12 bg-gray-800 text-white rounded-full shadow-lg flex items-center justify-center">
+                <i class="fas fa-calculator"></i>
+            </button>
+            <button @click="copyTotals()" class="px-5 h-12 bg-green-600 text-white rounded-full shadow-lg font-bold text-sm flex items-center gap-2">
+                <i class="far fa-copy"></i> Salin Total
+            </button>
+        </div>
+
+        <div x-show="showCalc" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" @click.self="showCalc = false" style="display: none;">
+            <div class="bg-white rounded-xl w-full max-w-[300px] shadow-2xl overflow-hidden">
+                <div class="bg-gray-100 p-3 flex justify-between items-center border-b">
+                    <span class="font-bold text-sm">Kalkulator</span>
+                    <button @click="showCalc = false" class="text-xl px-2">&times;</button>
+                </div>
+                <div class="p-4">
+                    <input type="text" x-model="calcDisplay" readonly class="w-full mb-3 p-2 text-right text-xl font-mono bg-gray-50 border rounded">
+                    <div class="grid grid-cols-4 gap-2 text-base font-bold">
+                        <button @click="calcDisplay = ''" class="col-span-2 p-2 bg-red-100 text-red-600 rounded">C</button>
+                        <button @click="calcAppend('/')" class="p-2 bg-blue-50 text-blue-600 rounded">÷</button>
+                        <button @click="calcAppend('*')" class="p-2 bg-blue-50 text-blue-600 rounded">×</button>
+                        <button @click="calcAppend('7')" class="p-2 border rounded">7</button>
+                        <button @click="calcAppend('8')" class="p-2 border rounded">8</button>
+                        <button @click="calcAppend('9')" class="p-2 border rounded">9</button>
+                        <button @click="calcAppend('-')" class="p-2 bg-blue-50 text-blue-600 rounded">-</button>
+                        <button @click="calcAppend('4')" class="p-2 border rounded">4</button>
+                        <button @click="calcAppend('5')" class="p-2 border rounded">5</button>
+                        <button @click="calcAppend('6')" class="p-2 border rounded">6</button>
+                        <button @click="calcAppend('+')" class="p-2 bg-blue-50 text-blue-600 rounded">+</button>
+                        <button @click="calcAppend('1')" class="p-2 border rounded">1</button>
+                        <button @click="calcAppend('2')" class="p-2 border rounded">2</button>
+                        <button @click="calcAppend('3')" class="p-2 border rounded">3</button>
+                        <button @click="calcResult()" class="row-span-2 p-2 bg-green-600 text-white rounded flex items-center justify-center">=</button>
+                        <button @click="calcAppend('0')" class="col-span-2 p-2 border rounded">0</button>
+                        <button @click="calcAppend('.')" class="p-2 border rounded">.</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function stockApp() {
+            return {
+                items: [],
+                searchQuery: '',
+                showCalc: false,
+                calcDisplay: '',
+                
+                // Getter untuk filter search
+                get filteredItems() {
+                    if (this.searchQuery === '') return this.items;
+                    return this.items.filter(i => i.name.toLowerCase().includes(this.searchQuery.toLowerCase()));
+                },
+
+                handleFileUpload(e) {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        try {
+                            const data = new Uint8Array(event.target.result);
+                            const workbook = XLSX.read(data, { type: 'array' });
+                            const sheetName = workbook.SheetNames[0];
+                            const json = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1 });
+                            
+                            // Map data: Baris 1 dianggap header, data mulai baris 2
+                            this.items = json.slice(1).map((row, i) => ({
+                                id: Date.now() + i,
+                                name: row[0] || 'Tanpa Nama',
+                                rak: '', m1: '', m2: '', m3: '', m4: ''
+                            })).filter(i => i.name && i.name !== 'Tanpa Nama');
+                            
+                            e.target.value = ''; // Reset input
+                        } catch (err) { alert("Gagal baca file: " + err); }
+                    };
+                    reader.readAsArrayBuffer(file);
+                },
+
+                copyTotals() {
+                    const target = this.searchQuery ? this.filteredItems : this.items;
+                    if(target.length === 0) return alert("Data kosong!");
+
+                    const totals = target.map(item => {
+                        return (Number(item.rak)||0) + (Number(item.m1)||0) + (Number(item.m2)||0) + (Number(item.m3)||0) + (Number(item.m4)||0);
+                    }).join('\n');
+
+                    // Fallback copy aman
+                    const el = document.createElement('textarea');
+                    el.value = totals;
+                    document.body.appendChild(el);
+                    el.select();
+                    try { document.execCommand('copy'); alert(`✅ Berhasil menyalin ${target.length} baris!`); } 
+                    catch (err) { alert('❌ Gagal menyalin.'); }
+                    document.body.removeChild(el);
+                },
+
+                resetApp() {
+                    if(confirm("Hapus semua data?")) {
+                        this.items = [];
+                        this.searchQuery = '';
+                    }
+                },
+
+                // Logic Kalkulator
+                calcAppend(v) { this.calcDisplay += v; },
+                calcResult() { try { this.calcDisplay = eval(this.calcDisplay); } catch { this.calcDisplay = 'Error'; } }
+            }
+        }
+    </script>
+</body>
+</html>
