@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Casa & Imago Frame (Final)</title>
+    <title>Casa & Imago Frame (Final V10)</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -147,4 +147,124 @@
                         <button @click="calcAppend('/')" class="p-3 bg-gray-700 text-blue-300 rounded">÷</button>
                         <button @click="calcAppend('*')" class="p-3 bg-gray-700 text-blue-300 rounded">×</button>
                         <button @click="calcAppend('7')" class="p-3 bg-gray-600 text-white rounded">7</button>
-                        <button @click="calcAppend('8')" class="p-3 bg-gray-600 text-white rounded
+                        <button @click="calcAppend('8')" class="p-3 bg-gray-600 text-white rounded">8</button>
+                        <button @click="calcAppend('9')" class="p-3 bg-gray-600 text-white rounded">9</button>
+                        <button @click="calcAppend('-')" class="p-3 bg-gray-700 text-blue-300 rounded">-</button>
+                        <button @click="calcAppend('4')" class="p-3 bg-gray-600 text-white rounded">4</button>
+                        <button @click="calcAppend('5')" class="p-3 bg-gray-600 text-white rounded">5</button>
+                        <button @click="calcAppend('6')" class="p-3 bg-gray-600 text-white rounded">6</button>
+                        <button @click="calcAppend('+')" class="p-3 bg-gray-700 text-blue-300 rounded">+</button>
+                        <button @click="calcAppend('1')" class="p-3 bg-gray-600 text-white rounded">1</button>
+                        <button @click="calcAppend('2')" class="p-3 bg-gray-600 text-white rounded">2</button>
+                        <button @click="calcAppend('3')" class="p-3 bg-gray-600 text-white rounded">3</button>
+                        <button @click="calcResult()" class="row-span-2 p-3 bg-blue-700 text-white rounded flex items-center justify-center">=</button>
+                        <button @click="calcAppend('0')" class="col-span-2 p-3 bg-gray-600 text-white rounded">0</button>
+                        <button @click="calcAppend('.')" class="p-3 bg-gray-600 text-white rounded">.</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function stockApp() {
+            return {
+                items: [],
+                searchQuery: '',
+                showCalc: false,
+                calcDisplay: '',
+                
+                get filteredItems() {
+                    if (this.searchQuery === '') return this.items;
+                    return this.items.filter(i => i.name.toLowerCase().includes(this.searchQuery.toLowerCase()));
+                },
+
+                // 1. Upload Excel
+                handleFileUpload(e) {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        try {
+                            const data = new Uint8Array(event.target.result);
+                            const workbook = XLSX.read(data, { type: 'array' });
+                            const sheetName = workbook.SheetNames[0];
+                            const json = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1 });
+                            this.items = json.slice(1).map((row, i) => ({
+                                id: Date.now() + i,
+                                name: row[0] || 'Tanpa Nama',
+                                rak: '', m1: '', m2: '', m3: '', m4: ''
+                            })).filter(i => i.name && i.name !== 'Tanpa Nama');
+                            e.target.value = ''; 
+                        } catch (err) { alert("Gagal baca Excel."); }
+                    };
+                    reader.readAsArrayBuffer(file);
+                },
+
+                // 2. Download Backup
+                downloadBackup() {
+                    const dataStr = JSON.stringify(this.items);
+                    const blob = new Blob([dataStr], {type: "application/json"});
+                    const url = URL.createObjectURL(blob);
+                    
+                    const now = new Date();
+                    const time = `${now.getHours()}.${now.getMinutes()}`;
+                    const fileName = `backup_casa_imago_${time}.json`;
+
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = fileName;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                },
+
+                // 3. Restore Backup
+                restoreBackup(e) {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        try {
+                            const data = JSON.parse(event.target.result);
+                            if (Array.isArray(data)) {
+                                this.items = data;
+                                alert("✅ Data Casa & Imago pulih!");
+                            } else { alert("❌ Format salah!"); }
+                        } catch (err) { alert("❌ Gagal baca file."); }
+                        e.target.value = ''; 
+                    };
+                    reader.readAsText(file);
+                },
+
+                copyTotals() {
+                    const target = this.searchQuery ? this.filteredItems : this.items;
+                    if(target.length === 0) return alert("Data kosong!");
+                    const totals = target.map(item => {
+                        return (Number(item.rak)||0) + (Number(item.m1)||0) + (Number(item.m2)||0) + (Number(item.m3)||0) + (Number(item.m4)||0);
+                    }).join('\n');
+                    const el = document.createElement('textarea');
+                    el.value = totals;
+                    document.body.appendChild(el);
+                    el.select();
+                    try { document.execCommand('copy'); alert(`✅ ${target.length} Item disalin!`); } 
+                    catch (err) { alert('❌ Gagal.'); }
+                    document.body.removeChild(el);
+                },
+
+                resetApp() {
+                    if(confirm("Hapus semua data?")) {
+                        this.items = [];
+                        this.searchQuery = '';
+                    }
+                },
+                calcAppend(v) { this.calcDisplay += v; },
+                calcResult() { try { this.calcDisplay = eval(this.calcDisplay); } catch { this.calcDisplay = 'Error'; } }
+            }
+        }
+    </script>
+</body>
+</html>
