@@ -3,41 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Stock Opname V12 (Final Fix)</title>
+    <title>Casa & Imago Tools (All-in-One)</title>
     
-    <script>
-        window.onerror = function(msg, url, line) {
-            alert("Terjadi Kesalahan:\n" + msg + "\nBaris: " + line);
-            return false;
-        };
-    </script>
-
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.13.3/dist/cdn.min.js"></script>
+
     <style>
-        body { opacity: 1 !important; } /* Paksa muncul */
+        /* CSS Fixes */
+        body { opacity: 1 !important; }
         input[type=number]::-webkit-inner-spin-button, 
         input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         .touch-manipulation { touch-action: manipulation; }
+        
+        /* Tab Active State */
+        .tab-active { background-color: #1f2937; color: white; border-color: #1f2937; }
+        .tab-inactive { background-color: white; color: #4b5563; }
     </style>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script defer src="https://unpkg.com/alpinejs@3.13.3/dist/cdn.min.js"></script>
 </head>
 
-<body class="bg-gray-100 min-h-screen pb-40 font-sans text-gray-900">
+<body class="bg-gray-100 min-h-screen font-sans text-gray-900 pb-20" x-data="{ activeTab: 'stock' }">
 
-    <div x-data="stockApp()">
+    <div class="fixed top-0 left-0 right-0 z-50 bg-white shadow-md p-2 flex gap-2 justify-center border-b border-gray-200">
+        <button 
+            @click="activeTab = 'stock'" 
+            class="flex-1 max-w-[200px] py-2 px-4 rounded-lg text-sm font-bold border transition duration-200 flex items-center justify-center gap-2"
+            :class="activeTab === 'stock' ? 'tab-active' : 'tab-inactive'">
+            <i class="fas fa-boxes"></i> Stock Opname
+        </button>
+        <button 
+            @click="activeTab = 'shipping'" 
+            class="flex-1 max-w-[200px] py-2 px-4 rounded-lg text-sm font-bold border transition duration-200 flex items-center justify-center gap-2"
+            :class="activeTab === 'shipping' ? 'bg-blue-600 text-white border-blue-600' : 'tab-inactive'">
+            <i class="fas fa-truck"></i> Label Kirim
+        </button>
+    </div>
+
+    <div class="h-16"></div>
+
+    <div x-show="activeTab === 'stock'" x-data="stockApp()" class="transition-opacity duration-300">
         
-        <header class="bg-gray-900 text-white p-4 shadow-lg sticky top-0 z-30 border-b border-gray-700">
-            <div class="max-w-4xl mx-auto flex justify-between items-center mb-3">
+        <div class="max-w-4xl mx-auto bg-gray-900 text-white p-4 rounded-b-xl shadow-lg mb-4 mx-2">
+            <div class="flex justify-between items-center mb-3">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 bg-gray-700 rounded flex items-center justify-center border border-gray-600">
                         <i class="fas fa-cube text-xl text-gray-300"></i>
                     </div>
                     <div>
                         <h1 class="font-bold text-lg leading-none tracking-wide">Casa & Imago</h1>
-                        <p class="text-[10px] text-gray-400 uppercase mt-1">V12 Anti-Blank</p>
+                        <p class="text-[10px] text-gray-400 uppercase mt-1">Stock Opname</p>
                     </div>
                 </div>
                 <button x-show="items.length > 0" @click="resetApp()" class="text-xs bg-gray-800 hover:bg-red-900 border border-gray-600 text-gray-200 px-3 py-1.5 rounded transition">
@@ -61,12 +78,11 @@
                     <input type="text" x-model="searchQuery" placeholder="Cari item..." class="w-full pl-9 pr-4 py-2 rounded bg-gray-800 border border-gray-700 text-white text-sm focus:outline-none focus:border-gray-500 placeholder-gray-500">
                 </div>
             </div>
-        </header>
+        </div>
 
         <main class="max-w-4xl mx-auto p-3">
-            
             <template x-if="items.length === 0">
-                <div class="mt-6 space-y-4">
+                <div class="space-y-4">
                     <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-300 text-center">
                         <div class="w-12 h-12 bg-gray-200 text-gray-700 rounded-full flex items-center justify-center mx-auto mb-3">
                             <i class="fas fa-file-excel text-2xl"></i>
@@ -93,7 +109,7 @@
                 </div>
             </template>
 
-            <div class="space-y-2 mt-4" x-show="items.length > 0" style="display: none;">
+            <div class="space-y-2" x-show="items.length > 0">
                 <template x-for="item in filteredItems" :key="item.id">
                     <div>
                         <template x-if="item.isSpacer">
@@ -101,7 +117,6 @@
                                 <span class="text-[10px] text-gray-400 italic font-mono">-- Baris Kosong --</span>
                             </div>
                         </template>
-
                         <template x-if="!item.isSpacer">
                             <div class="bg-white p-3 rounded-lg shadow-sm border border-gray-200 flex flex-col md:flex-row gap-2 mb-2">
                                 <div class="flex-1 min-w-0">
@@ -128,14 +143,13 @@
                         </template>
                     </div>
                 </template>
-
                 <div x-show="filteredItems.length === 0" class="text-center py-10 text-gray-400">
                     <p>Item tidak ditemukan.</p>
                 </div>
             </div>
         </main>
 
-        <div class="fixed bottom-6 right-4 flex flex-col gap-3 z-40" x-show="items.length > 0" style="display: none;">
+        <div class="fixed bottom-6 right-4 flex flex-col gap-3 z-40" x-show="items.length > 0">
             <button @click="showCalc = true" class="w-12 h-12 bg-gray-800 text-white rounded-full shadow-xl flex items-center justify-center border border-gray-600">
                 <i class="fas fa-calculator"></i>
             </button>
@@ -174,10 +188,95 @@
                 </div>
             </div>
         </div>
-
     </div>
 
+
+    <div x-show="activeTab === 'shipping'" x-data="shippingApp()" class="transition-opacity duration-300 max-w-2xl mx-auto p-4">
+        
+        <div class="bg-blue-600 text-white p-4 rounded-xl shadow-lg mb-6 flex items-center gap-3">
+            <div class="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
+                <i class="fas fa-truck-fast text-2xl"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-xl leading-none">Label Pengiriman</h1>
+                <p class="text-xs text-blue-100 mt-1">Generator A6 & Box Counter</p>
+            </div>
+        </div>
+
+        <div class="space-y-4">
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+                <h2 class="text-sm font-bold text-gray-800 mb-3 border-b pb-2 flex items-center gap-2">
+                    <i class="fas fa-paper-plane text-blue-600"></i> PENGIRIM (FROM)
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 mb-1">Nama</label>
+                        <input type="text" x-model="fromName" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none text-sm bg-gray-50">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 mb-1">No. HP</label>
+                        <input type="text" x-model="fromPhone" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none text-sm bg-gray-50">
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+                <h2 class="text-sm font-bold text-gray-800 mb-3 border-b pb-2 flex items-center gap-2">
+                    <i class="fas fa-map-marker-alt text-red-600"></i> PENERIMA (TO)
+                </h2>
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 mb-1">Nama Customer</label>
+                        <input type="text" x-model="toName" placeholder="Nama..." class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none text-sm font-bold">
+                    </div>
+                    
+                    <div class="flex gap-2">
+                        <div class="w-1/3">
+                            <label class="block text-xs font-semibold text-gray-500 mb-1">Tipe ID</label>
+                            <select x-model="idType" class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none text-sm bg-white">
+                                <option value="resi">No. Resi</option>
+                                <option value="telp">No. Telpon</option>
+                            </select>
+                        </div>
+                        <div class="w-2/3">
+                            <label class="block text-xs font-semibold text-gray-500 mb-1">Nomor</label>
+                            <input type="text" x-model="idValue" placeholder="Masukan nomor..." class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none text-sm">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 mb-1">Alamat Lengkap</label>
+                        <textarea x-model="address" rows="3" placeholder="Jalan, No. Rumah, Kota, Kode Pos..." class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none text-sm"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+                <h2 class="text-sm font-bold text-gray-800 mb-3 border-b pb-2 flex items-center gap-2">
+                    <i class="fas fa-boxes text-orange-500"></i> JUMLAH PAKET
+                </h2>
+                <div class="flex items-center gap-4">
+                    <div class="w-24">
+                        <label class="block text-xs font-semibold text-gray-500 mb-1">Total Box</label>
+                        <input type="number" x-model.number="totalPackages" min="1" class="w-full p-2 text-center text-xl font-bold border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div class="flex-1 text-xs text-gray-500 bg-gray-50 p-2 rounded border border-gray-100">
+                        <i class="fas fa-info-circle text-blue-500"></i>
+                        Akan mencetak <span x-text="totalPackages" class="font-bold text-gray-900"></span> lembar PDF (Box 1 of <span x-text="totalPackages"></span>, dst).
+                    </div>
+                </div>
+            </div>
+
+            <button @click="generatePDF()" class="w-full bg-gray-900 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-black transition active:scale-95 flex items-center justify-center gap-2">
+                <i class="fas fa-file-pdf text-xl"></i>
+                DOWNLOAD PDF (A6)
+            </button>
+        </div>
+    </div>
+
+
     <script>
+        // --- LOGIC STOCK OPNAME ---
         function stockApp() {
             return {
                 items: [],
@@ -200,7 +299,6 @@
                             const workbook = XLSX.read(data, { type: 'array' });
                             const sheetName = workbook.SheetNames[0];
                             const json = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1 });
-                            
                             this.items = json.slice(1).map((row, i) => {
                                 const itemName = row[0];
                                 const isSpacer = !itemName || itemName.toString().trim() === '';
@@ -239,10 +337,8 @@
                     reader.onload = (event) => {
                         try {
                             const data = JSON.parse(event.target.result);
-                            if (Array.isArray(data)) {
-                                this.items = data;
-                                alert("✅ Data Pulih!");
-                            } else { alert("❌ Format salah!"); }
+                            if (Array.isArray(data)) { this.items = data; alert("✅ Data Pulih!"); } 
+                            else { alert("❌ Format salah!"); }
                         } catch (err) { alert("❌ Gagal baca file."); }
                         e.target.value = ''; 
                     };
@@ -252,29 +348,103 @@
                 copyTotals() {
                     const target = this.searchQuery ? this.filteredItems : this.items;
                     if(target.length === 0) return alert("Data kosong!");
-                    
                     const totals = target.map(item => {
                         if (item.isSpacer) return ""; 
                         return (Number(item.rak)||0) + (Number(item.m1)||0) + (Number(item.m2)||0) + (Number(item.m3)||0) + (Number(item.m4)||0);
                     }).join('\n');
-
                     const el = document.createElement('textarea');
                     el.value = totals;
                     document.body.appendChild(el);
                     el.select();
-                    try { document.execCommand('copy'); alert(`✅ ${target.length} Data disalin (Presisi Excel)!`); } 
+                    try { document.execCommand('copy'); alert(`✅ Tersalin (Presisi Excel)!`); } 
                     catch (err) { alert('❌ Gagal.'); }
                     document.body.removeChild(el);
                 },
 
-                resetApp() {
-                    if(confirm("Hapus semua?")) {
-                        this.items = [];
-                        this.searchQuery = '';
-                    }
-                },
+                resetApp() { if(confirm("Hapus semua?")) { this.items = []; this.searchQuery = ''; } },
                 calcAppend(v) { this.calcDisplay += v; },
                 calcResult() { try { this.calcDisplay = eval(this.calcDisplay); } catch { this.calcDisplay = 'Error'; } }
+            }
+        }
+
+        // --- LOGIC SHIPPING LABEL ---
+        function shippingApp() {
+            return {
+                fromName: 'PICORA',
+                fromPhone: '081211009890',
+                toName: '',
+                idType: 'telp', 
+                idValue: '',
+                address: '',
+                totalPackages: 1,
+
+                generatePDF() {
+                    if(!this.toName) return alert("Nama Penerima wajib diisi!");
+                    
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF({
+                        orientation: "portrait",
+                        unit: "mm",
+                        format: [105, 148] // A6
+                    });
+
+                    for (let i = 1; i <= this.totalPackages; i++) {
+                        if (i > 1) doc.addPage(); 
+
+                        // Border
+                        doc.setLineWidth(0.5);
+                        doc.rect(5, 5, 95, 138);
+
+                        // HEADER: BOX COUNT
+                        doc.setFont("helvetica", "bold");
+                        doc.setFontSize(14);
+                        doc.text(`Box ${i} of ${this.totalPackages}`, 52.5, 12, { align: "center" });
+                        doc.setLineWidth(0.3);
+                        doc.line(5, 15, 100, 15); 
+
+                        // FROM
+                        doc.setFontSize(10);
+                        doc.text("FROM :", 8, 22);
+                        doc.setFontSize(12);
+                        doc.text(this.fromName, 8, 28);
+                        doc.setFont("helvetica", "normal");
+                        doc.setFontSize(10);
+                        doc.text(this.fromPhone, 8, 34);
+                        doc.line(5, 38, 100, 38); 
+
+                        // TO
+                        doc.setFont("helvetica", "bold");
+                        doc.text("TO :", 8, 45);
+                        doc.setFontSize(14);
+                        const toNameLines = doc.splitTextToSize(this.toName, 88);
+                        doc.text(toNameLines, 8, 52);
+                        
+                        let currentY = 52 + (toNameLines.length * 6);
+
+                        // ALAMAT
+                        doc.setFont("helvetica", "normal");
+                        doc.setFontSize(11);
+                        const addressLines = doc.splitTextToSize(this.address, 88);
+                        doc.text(addressLines, 8, currentY);
+                        currentY += (addressLines.length * 6) + 5;
+
+                        // IDENTIFIER
+                        doc.setFont("helvetica", "bold");
+                        doc.setFontSize(12);
+                        const labelType = this.idType === 'resi' ? 'No. Resi' : 'No. HP';
+                        doc.text(`${labelType} : ${this.idValue}`, 8, currentY);
+
+                        // Footer
+                        doc.setFontSize(8);
+                        doc.setFont("helvetica", "italic");
+                        doc.setTextColor(150);
+                        doc.text("Generated by Casa & Imago App", 52.5, 141, { align: "center" });
+                        doc.setTextColor(0);
+                    }
+
+                    const fileName = `Label_${this.toName.replace(/[^a-z0-9]/gi, '_')}.pdf`;
+                    doc.save(fileName);
+                }
             }
         }
     </script>
