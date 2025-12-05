@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Casa & Imago Frame (Final V10)</title>
+    <title>Casa & Imago V11 (Presisi Excel)</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Memastikan Input Angka Rapi di HP */
+        /* CSS Input Number Rapi */
         input[type=number]::-webkit-inner-spin-button, 
         input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         .touch-manipulation { touch-action: manipulation; }
@@ -31,10 +31,9 @@
                         </div>
                         <div>
                             <h1 class="font-bold text-lg leading-none tracking-wide">Casa & Imago</h1>
-                            <p class="text-[10px] text-gray-400 uppercase mt-1">Frame Stock Opname</p>
+                            <p class="text-[10px] text-gray-400 uppercase mt-1">V11 Presisi Excel</p>
                         </div>
                     </div>
-                    
                     <button x-show="items.length > 0" @click="resetApp()" class="text-xs bg-gray-800 hover:bg-red-900 border border-gray-600 text-gray-200 px-3 py-1.5 rounded transition">
                         Reset
                     </button>
@@ -62,13 +61,12 @@
         <main class="max-w-4xl mx-auto p-3">
             
             <div x-show="items.length === 0" class="mt-6 space-y-4">
-                
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-300 text-center">
                     <div class="w-12 h-12 bg-gray-200 text-gray-700 rounded-full flex items-center justify-center mx-auto mb-3">
                         <i class="fas fa-file-excel text-2xl"></i>
                     </div>
                     <h2 class="text-base font-bold text-gray-900">Mulai Baru</h2>
-                    <p class="text-xs text-gray-500 mb-4">Upload file master .xlsx</p>
+                    <p class="text-xs text-gray-500 mb-4">Gunakan file master .xlsx</p>
                     <label class="block w-full bg-gray-900 text-white font-bold py-3 rounded-lg shadow hover:bg-black active:scale-95 transition text-sm cursor-pointer">
                         Pilih File Excel
                         <input type="file" @change="handleFileUpload" accept=".xlsx, .xls" class="hidden"/>
@@ -86,36 +84,44 @@
                         <input type="file" @change="restoreBackup" accept=".json" class="hidden"/>
                     </label>
                 </div>
-
             </div>
 
-            <div class="space-y-3 mt-4" x-show="items.length > 0" style="display: none;">
+            <div class="space-y-2 mt-4" x-show="items.length > 0" style="display: none;">
                 <template x-for="item in filteredItems" :key="item.id">
-                    <div class="bg-white p-3 rounded-lg shadow-sm border border-gray-200 flex flex-col md:flex-row gap-2">
-                        
-                        <div class="flex-1 min-w-0">
-                            <h3 class="font-bold text-gray-900 text-sm break-words" x-text="item.name"></h3>
-                            <div class="text-[10px] text-gray-400 mt-0.5">ID: <span x-text="item.id.toString().slice(-4)"></span></div>
-                        </div>
-
-                        <div class="flex items-center justify-between gap-2 mt-2 md:mt-0 bg-gray-50 p-2 rounded md:bg-transparent md:p-0">
-                            <div class="text-center">
-                                <span class="text-[9px] text-gray-500 font-bold block md:hidden mb-1">RAK</span>
-                                <input type="number" x-model.number="item.rak" class="w-16 h-10 border border-gray-300 rounded text-center font-bold text-lg text-gray-900 focus:ring-1 focus:ring-gray-900 outline-none bg-white" placeholder="0">
+                    <div>
+                        <template x-if="item.isSpacer">
+                            <div class="h-8 bg-gray-200/50 border-l-4 border-gray-400 mb-2 rounded flex items-center pl-2">
+                                <span class="text-[10px] text-gray-400 italic font-mono">-- Baris Kosong (Excel) --</span>
                             </div>
+                        </template>
 
-                            <div class="flex gap-1">
-                                <input type="number" x-model.number="item.m1" class="w-9 h-9 bg-gray-700 text-white rounded text-center text-xs outline-none focus:bg-gray-600 border border-gray-600" placeholder="-">
-                                <input type="number" x-model.number="item.m2" class="w-9 h-9 bg-gray-700 text-white rounded text-center text-xs outline-none focus:bg-gray-600 border border-gray-600" placeholder="-">
-                                <input type="number" x-model.number="item.m3" class="w-9 h-9 bg-gray-700 text-white rounded text-center text-xs outline-none focus:bg-gray-600 border border-gray-600" placeholder="-">
-                                <input type="number" x-model.number="item.m4" class="w-9 h-9 bg-gray-700 text-white rounded text-center text-xs outline-none focus:bg-gray-600 border border-gray-600" placeholder="-">
-                            </div>
+                        <template x-if="!item.isSpacer">
+                            <div class="bg-white p-3 rounded-lg shadow-sm border border-gray-200 flex flex-col md:flex-row gap-2 mb-2">
+                                <div class="flex-1 min-w-0">
+                                    <h3 class="font-bold text-gray-900 text-sm break-words" x-text="item.name"></h3>
+                                    <div class="text-[10px] text-gray-400 mt-0.5">ID: <span x-text="item.id.toString().slice(-4)"></span></div>
+                                </div>
 
-                            <div class="w-12 text-center pl-2 border-l border-gray-300">
-                                <span class="text-[9px] text-gray-500 font-bold block md:hidden mb-1">TOTAL</span>
-                                <div class="font-black text-lg text-gray-800" x-text="(Number(item.rak)||0) + (Number(item.m1)||0) + (Number(item.m2)||0) + (Number(item.m3)||0) + (Number(item.m4)||0)">0</div>
+                                <div class="flex items-center justify-between gap-2 mt-2 md:mt-0 bg-gray-50 p-2 rounded md:bg-transparent md:p-0">
+                                    <div class="text-center">
+                                        <span class="text-[9px] text-gray-500 font-bold block md:hidden mb-1">RAK</span>
+                                        <input type="number" x-model.number="item.rak" class="w-16 h-10 border border-gray-300 rounded text-center font-bold text-lg text-gray-900 focus:ring-1 focus:ring-gray-900 outline-none bg-white" placeholder="0">
+                                    </div>
+
+                                    <div class="flex gap-1">
+                                        <input type="number" x-model.number="item.m1" class="w-9 h-9 bg-gray-700 text-white rounded text-center text-xs outline-none focus:bg-gray-600 border border-gray-600" placeholder="-">
+                                        <input type="number" x-model.number="item.m2" class="w-9 h-9 bg-gray-700 text-white rounded text-center text-xs outline-none focus:bg-gray-600 border border-gray-600" placeholder="-">
+                                        <input type="number" x-model.number="item.m3" class="w-9 h-9 bg-gray-700 text-white rounded text-center text-xs outline-none focus:bg-gray-600 border border-gray-600" placeholder="-">
+                                        <input type="number" x-model.number="item.m4" class="w-9 h-9 bg-gray-700 text-white rounded text-center text-xs outline-none focus:bg-gray-600 border border-gray-600" placeholder="-">
+                                    </div>
+
+                                    <div class="w-12 text-center pl-2 border-l border-gray-300">
+                                        <span class="text-[9px] text-gray-500 font-bold block md:hidden mb-1">TOTAL</span>
+                                        <div class="font-black text-lg text-gray-800" x-text="(Number(item.rak)||0) + (Number(item.m1)||0) + (Number(item.m2)||0) + (Number(item.m3)||0) + (Number(item.m4)||0)">0</div>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
+                        </template>
                     </div>
                 </template>
 
@@ -164,7 +170,6 @@
                 </div>
             </div>
         </div>
-
     </div>
 
     <script>
@@ -176,11 +181,12 @@
                 calcDisplay: '',
                 
                 get filteredItems() {
+                    // Jika sedang mencari, hanya tampilkan yang cocok (spacer disembunyikan agar hasil cari bersih)
+                    // Jika tidak mencari, tampilkan SEMUA termasuk spacer agar sesuai Excel
                     if (this.searchQuery === '') return this.items;
-                    return this.items.filter(i => i.name.toLowerCase().includes(this.searchQuery.toLowerCase()));
+                    return this.items.filter(i => !i.isSpacer && i.name.toLowerCase().includes(this.searchQuery.toLowerCase()));
                 },
 
-                // 1. Upload Excel
                 handleFileUpload(e) {
                     const file = e.target.files[0];
                     if (!file) return;
@@ -191,27 +197,32 @@
                             const workbook = XLSX.read(data, { type: 'array' });
                             const sheetName = workbook.SheetNames[0];
                             const json = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1 });
-                            this.items = json.slice(1).map((row, i) => ({
-                                id: Date.now() + i,
-                                name: row[0] || 'Tanpa Nama',
-                                rak: '', m1: '', m2: '', m3: '', m4: ''
-                            })).filter(i => i.name && i.name !== 'Tanpa Nama');
+                            
+                            // LOGIKA BARU: JANGAN FILTER BARIS KOSONG
+                            // Kita tandai sebagai "Spacer" agar struktur Excel tetap terjaga
+                            this.items = json.slice(1).map((row, i) => {
+                                const itemName = row[0];
+                                const isSpacer = !itemName || itemName.toString().trim() === '';
+                                return {
+                                    id: Date.now() + i,
+                                    name: itemName || '',
+                                    isSpacer: isSpacer, // Penanda baris kosong
+                                    rak: '', m1: '', m2: '', m3: '', m4: ''
+                                };
+                            });
                             e.target.value = ''; 
                         } catch (err) { alert("Gagal baca Excel."); }
                     };
                     reader.readAsArrayBuffer(file);
                 },
 
-                // 2. Download Backup
                 downloadBackup() {
                     const dataStr = JSON.stringify(this.items);
                     const blob = new Blob([dataStr], {type: "application/json"});
                     const url = URL.createObjectURL(blob);
-                    
                     const now = new Date();
                     const time = `${now.getHours()}.${now.getMinutes()}`;
                     const fileName = `backup_casa_imago_${time}.json`;
-
                     const a = document.createElement('a');
                     a.href = url;
                     a.download = fileName;
@@ -221,50 +232,10 @@
                     URL.revokeObjectURL(url);
                 },
 
-                // 3. Restore Backup
                 restoreBackup(e) {
                     const file = e.target.files[0];
                     if (!file) return;
-                    
                     const reader = new FileReader();
                     reader.onload = (event) => {
                         try {
-                            const data = JSON.parse(event.target.result);
-                            if (Array.isArray(data)) {
-                                this.items = data;
-                                alert("✅ Data Casa & Imago pulih!");
-                            } else { alert("❌ Format salah!"); }
-                        } catch (err) { alert("❌ Gagal baca file."); }
-                        e.target.value = ''; 
-                    };
-                    reader.readAsText(file);
-                },
-
-                copyTotals() {
-                    const target = this.searchQuery ? this.filteredItems : this.items;
-                    if(target.length === 0) return alert("Data kosong!");
-                    const totals = target.map(item => {
-                        return (Number(item.rak)||0) + (Number(item.m1)||0) + (Number(item.m2)||0) + (Number(item.m3)||0) + (Number(item.m4)||0);
-                    }).join('\n');
-                    const el = document.createElement('textarea');
-                    el.value = totals;
-                    document.body.appendChild(el);
-                    el.select();
-                    try { document.execCommand('copy'); alert(`✅ ${target.length} Item disalin!`); } 
-                    catch (err) { alert('❌ Gagal.'); }
-                    document.body.removeChild(el);
-                },
-
-                resetApp() {
-                    if(confirm("Hapus semua data?")) {
-                        this.items = [];
-                        this.searchQuery = '';
-                    }
-                },
-                calcAppend(v) { this.calcDisplay += v; },
-                calcResult() { try { this.calcDisplay = eval(this.calcDisplay); } catch { this.calcDisplay = 'Error'; } }
-            }
-        }
-    </script>
-</body>
-</html>
+                            const data = JSON.parse(event.target.
