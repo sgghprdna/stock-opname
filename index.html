@@ -3,12 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Casa & Imago V11 (Presisi Excel)</title>
+    <title>Stock Opname V12 (Final Fix)</title>
     
+    <script>
+        window.onerror = function(msg, url, line) {
+            alert("Terjadi Kesalahan:\n" + msg + "\nBaris: " + line);
+            return false;
+        };
+    </script>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* CSS Input Number Rapi */
+        body { opacity: 1 !important; } /* Paksa muncul */
         input[type=number]::-webkit-inner-spin-button, 
         input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         .touch-manipulation { touch-action: manipulation; }
@@ -23,75 +30,75 @@
     <div x-data="stockApp()">
         
         <header class="bg-gray-900 text-white p-4 shadow-lg sticky top-0 z-30 border-b border-gray-700">
-            <div class="max-w-4xl mx-auto">
-                <div class="flex justify-between items-center mb-3">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 bg-gray-700 rounded flex items-center justify-center border border-gray-600">
-                            <i class="fas fa-cube text-xl text-gray-300"></i>
-                        </div>
-                        <div>
-                            <h1 class="font-bold text-lg leading-none tracking-wide">Casa & Imago</h1>
-                            <p class="text-[10px] text-gray-400 uppercase mt-1">V11 Presisi Excel</p>
-                        </div>
+            <div class="max-w-4xl mx-auto flex justify-between items-center mb-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-gray-700 rounded flex items-center justify-center border border-gray-600">
+                        <i class="fas fa-cube text-xl text-gray-300"></i>
                     </div>
-                    <button x-show="items.length > 0" @click="resetApp()" class="text-xs bg-gray-800 hover:bg-red-900 border border-gray-600 text-gray-200 px-3 py-1.5 rounded transition">
-                        Reset
-                    </button>
-                </div>
-
-                <div x-show="items.length > 0" class="flex gap-2 mb-2">
-                    <button @click="downloadBackup()" class="flex-1 bg-white text-gray-900 text-xs font-bold py-2.5 rounded shadow hover:bg-gray-200 flex items-center justify-center gap-2 border border-gray-300">
-                        <i class="fas fa-download text-gray-600"></i> Simpan
-                    </button>
-                    <label class="flex-1 bg-gray-700 text-white text-xs font-bold py-2.5 rounded shadow hover:bg-gray-600 cursor-pointer flex items-center justify-center gap-2 border border-gray-600">
-                        <i class="fas fa-upload text-gray-400"></i> Buka File
-                        <input type="file" @change="restoreBackup" accept=".json" class="hidden"/>
-                    </label>
-                </div>
-
-                <div x-show="items.length > 0">
-                    <div class="relative">
-                        <i class="fas fa-search absolute left-3 top-2.5 text-gray-500 text-sm"></i>
-                        <input type="text" x-model="searchQuery" placeholder="Cari item..." class="w-full pl-9 pr-4 py-2 rounded bg-gray-800 border border-gray-700 text-white text-sm focus:outline-none focus:border-gray-500 placeholder-gray-500">
+                    <div>
+                        <h1 class="font-bold text-lg leading-none tracking-wide">Casa & Imago</h1>
+                        <p class="text-[10px] text-gray-400 uppercase mt-1">V12 Anti-Blank</p>
                     </div>
+                </div>
+                <button x-show="items.length > 0" @click="resetApp()" class="text-xs bg-gray-800 hover:bg-red-900 border border-gray-600 text-gray-200 px-3 py-1.5 rounded transition">
+                    Reset
+                </button>
+            </div>
+
+            <div x-show="items.length > 0" class="flex gap-2 mb-2">
+                <button @click="downloadBackup()" class="flex-1 bg-white text-gray-900 text-xs font-bold py-2.5 rounded shadow hover:bg-gray-200 flex items-center justify-center gap-2 border border-gray-300">
+                    <i class="fas fa-download text-gray-600"></i> Simpan
+                </button>
+                <label class="flex-1 bg-gray-700 text-white text-xs font-bold py-2.5 rounded shadow hover:bg-gray-600 cursor-pointer flex items-center justify-center gap-2 border border-gray-600">
+                    <i class="fas fa-upload text-gray-400"></i> Buka File
+                    <input type="file" @change="restoreBackup" accept=".json" class="hidden"/>
+                </label>
+            </div>
+
+            <div x-show="items.length > 0">
+                <div class="relative">
+                    <i class="fas fa-search absolute left-3 top-2.5 text-gray-500 text-sm"></i>
+                    <input type="text" x-model="searchQuery" placeholder="Cari item..." class="w-full pl-9 pr-4 py-2 rounded bg-gray-800 border border-gray-700 text-white text-sm focus:outline-none focus:border-gray-500 placeholder-gray-500">
                 </div>
             </div>
         </header>
 
         <main class="max-w-4xl mx-auto p-3">
             
-            <div x-show="items.length === 0" class="mt-6 space-y-4">
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-300 text-center">
-                    <div class="w-12 h-12 bg-gray-200 text-gray-700 rounded-full flex items-center justify-center mx-auto mb-3">
-                        <i class="fas fa-file-excel text-2xl"></i>
+            <template x-if="items.length === 0">
+                <div class="mt-6 space-y-4">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-300 text-center">
+                        <div class="w-12 h-12 bg-gray-200 text-gray-700 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <i class="fas fa-file-excel text-2xl"></i>
+                        </div>
+                        <h2 class="text-base font-bold text-gray-900">Mulai Baru</h2>
+                        <p class="text-xs text-gray-500 mb-4">Gunakan file master .xlsx</p>
+                        <label class="block w-full bg-gray-900 text-white font-bold py-3 rounded-lg shadow hover:bg-black active:scale-95 transition text-sm cursor-pointer">
+                            Pilih File Excel
+                            <input type="file" @change="handleFileUpload" accept=".xlsx, .xls" class="hidden"/>
+                        </label>
                     </div>
-                    <h2 class="text-base font-bold text-gray-900">Mulai Baru</h2>
-                    <p class="text-xs text-gray-500 mb-4">Gunakan file master .xlsx</p>
-                    <label class="block w-full bg-gray-900 text-white font-bold py-3 rounded-lg shadow hover:bg-black active:scale-95 transition text-sm cursor-pointer">
-                        Pilih File Excel
-                        <input type="file" @change="handleFileUpload" accept=".xlsx, .xls" class="hidden"/>
-                    </label>
-                </div>
 
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-300 text-center">
-                    <div class="w-12 h-12 bg-gray-100 text-gray-500 rounded-full flex items-center justify-center mx-auto mb-3">
-                        <i class="fas fa-history text-2xl"></i>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-300 text-center">
+                        <div class="w-12 h-12 bg-gray-100 text-gray-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <i class="fas fa-history text-2xl"></i>
+                        </div>
+                        <h2 class="text-base font-bold text-gray-900">Lanjutkan Data</h2>
+                        <p class="text-xs text-gray-500 mb-4">Upload file .json backup</p>
+                        <label class="block w-full bg-gray-600 text-white font-bold py-3 rounded-lg shadow hover:bg-gray-700 active:scale-95 transition text-sm cursor-pointer">
+                            Pilih File Backup
+                            <input type="file" @change="restoreBackup" accept=".json" class="hidden"/>
+                        </label>
                     </div>
-                    <h2 class="text-base font-bold text-gray-900">Lanjutkan Data</h2>
-                    <p class="text-xs text-gray-500 mb-4">Upload file .json backup</p>
-                    <label class="block w-full bg-gray-600 text-white font-bold py-3 rounded-lg shadow hover:bg-gray-700 active:scale-95 transition text-sm cursor-pointer">
-                        Pilih File Backup
-                        <input type="file" @change="restoreBackup" accept=".json" class="hidden"/>
-                    </label>
                 </div>
-            </div>
+            </template>
 
             <div class="space-y-2 mt-4" x-show="items.length > 0" style="display: none;">
                 <template x-for="item in filteredItems" :key="item.id">
                     <div>
                         <template x-if="item.isSpacer">
                             <div class="h-8 bg-gray-200/50 border-l-4 border-gray-400 mb-2 rounded flex items-center pl-2">
-                                <span class="text-[10px] text-gray-400 italic font-mono">-- Baris Kosong (Excel) --</span>
+                                <span class="text-[10px] text-gray-400 italic font-mono">-- Baris Kosong --</span>
                             </div>
                         </template>
 
@@ -101,20 +108,17 @@
                                     <h3 class="font-bold text-gray-900 text-sm break-words" x-text="item.name"></h3>
                                     <div class="text-[10px] text-gray-400 mt-0.5">ID: <span x-text="item.id.toString().slice(-4)"></span></div>
                                 </div>
-
                                 <div class="flex items-center justify-between gap-2 mt-2 md:mt-0 bg-gray-50 p-2 rounded md:bg-transparent md:p-0">
                                     <div class="text-center">
                                         <span class="text-[9px] text-gray-500 font-bold block md:hidden mb-1">RAK</span>
                                         <input type="number" x-model.number="item.rak" class="w-16 h-10 border border-gray-300 rounded text-center font-bold text-lg text-gray-900 focus:ring-1 focus:ring-gray-900 outline-none bg-white" placeholder="0">
                                     </div>
-
                                     <div class="flex gap-1">
-                                        <input type="number" x-model.number="item.m1" class="w-9 h-9 bg-gray-700 text-white rounded text-center text-xs outline-none focus:bg-gray-600 border border-gray-600" placeholder="-">
-                                        <input type="number" x-model.number="item.m2" class="w-9 h-9 bg-gray-700 text-white rounded text-center text-xs outline-none focus:bg-gray-600 border border-gray-600" placeholder="-">
-                                        <input type="number" x-model.number="item.m3" class="w-9 h-9 bg-gray-700 text-white rounded text-center text-xs outline-none focus:bg-gray-600 border border-gray-600" placeholder="-">
-                                        <input type="number" x-model.number="item.m4" class="w-9 h-9 bg-gray-700 text-white rounded text-center text-xs outline-none focus:bg-gray-600 border border-gray-600" placeholder="-">
+                                        <input type="number" x-model.number="item.m1" class="w-9 h-9 bg-gray-700 text-white rounded text-center text-xs outline-none border border-gray-600" placeholder="-">
+                                        <input type="number" x-model.number="item.m2" class="w-9 h-9 bg-gray-700 text-white rounded text-center text-xs outline-none border border-gray-600" placeholder="-">
+                                        <input type="number" x-model.number="item.m3" class="w-9 h-9 bg-gray-700 text-white rounded text-center text-xs outline-none border border-gray-600" placeholder="-">
+                                        <input type="number" x-model.number="item.m4" class="w-9 h-9 bg-gray-700 text-white rounded text-center text-xs outline-none border border-gray-600" placeholder="-">
                                     </div>
-
                                     <div class="w-12 text-center pl-2 border-l border-gray-300">
                                         <span class="text-[9px] text-gray-500 font-bold block md:hidden mb-1">TOTAL</span>
                                         <div class="font-black text-lg text-gray-800" x-text="(Number(item.rak)||0) + (Number(item.m1)||0) + (Number(item.m2)||0) + (Number(item.m3)||0) + (Number(item.m4)||0)">0</div>
@@ -132,10 +136,10 @@
         </main>
 
         <div class="fixed bottom-6 right-4 flex flex-col gap-3 z-40" x-show="items.length > 0" style="display: none;">
-            <button @click="showCalc = true" class="w-12 h-12 bg-gray-800 text-white rounded-full shadow-xl flex items-center justify-center hover:scale-105 transition border border-gray-600">
+            <button @click="showCalc = true" class="w-12 h-12 bg-gray-800 text-white rounded-full shadow-xl flex items-center justify-center border border-gray-600">
                 <i class="fas fa-calculator"></i>
             </button>
-            <button @click="copyTotals()" class="px-5 h-12 bg-green-700 text-white rounded-full shadow-xl font-bold text-sm flex items-center gap-2 hover:bg-green-800 transition active:scale-95 border border-green-600">
+            <button @click="copyTotals()" class="px-5 h-12 bg-green-700 text-white rounded-full shadow-xl font-bold text-sm flex items-center gap-2 border border-green-600">
                 <i class="far fa-copy"></i> Salin Total
             </button>
         </div>
@@ -170,6 +174,7 @@
                 </div>
             </div>
         </div>
+
     </div>
 
     <script>
@@ -181,8 +186,6 @@
                 calcDisplay: '',
                 
                 get filteredItems() {
-                    // Jika sedang mencari, hanya tampilkan yang cocok (spacer disembunyikan agar hasil cari bersih)
-                    // Jika tidak mencari, tampilkan SEMUA termasuk spacer agar sesuai Excel
                     if (this.searchQuery === '') return this.items;
                     return this.items.filter(i => !i.isSpacer && i.name.toLowerCase().includes(this.searchQuery.toLowerCase()));
                 },
@@ -198,15 +201,13 @@
                             const sheetName = workbook.SheetNames[0];
                             const json = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1 });
                             
-                            // LOGIKA BARU: JANGAN FILTER BARIS KOSONG
-                            // Kita tandai sebagai "Spacer" agar struktur Excel tetap terjaga
                             this.items = json.slice(1).map((row, i) => {
                                 const itemName = row[0];
                                 const isSpacer = !itemName || itemName.toString().trim() === '';
                                 return {
                                     id: Date.now() + i,
                                     name: itemName || '',
-                                    isSpacer: isSpacer, // Penanda baris kosong
+                                    isSpacer: isSpacer,
                                     rak: '', m1: '', m2: '', m3: '', m4: ''
                                 };
                             });
@@ -221,8 +222,7 @@
                     const blob = new Blob([dataStr], {type: "application/json"});
                     const url = URL.createObjectURL(blob);
                     const now = new Date();
-                    const time = `${now.getHours()}.${now.getMinutes()}`;
-                    const fileName = `backup_casa_imago_${time}.json`;
+                    const fileName = `backup_casa_imago_${now.getHours()}.${now.getMinutes()}.json`;
                     const a = document.createElement('a');
                     a.href = url;
                     a.download = fileName;
@@ -238,4 +238,45 @@
                     const reader = new FileReader();
                     reader.onload = (event) => {
                         try {
-                            const data = JSON.parse(event.target.
+                            const data = JSON.parse(event.target.result);
+                            if (Array.isArray(data)) {
+                                this.items = data;
+                                alert("✅ Data Pulih!");
+                            } else { alert("❌ Format salah!"); }
+                        } catch (err) { alert("❌ Gagal baca file."); }
+                        e.target.value = ''; 
+                    };
+                    reader.readAsText(file);
+                },
+
+                copyTotals() {
+                    const target = this.searchQuery ? this.filteredItems : this.items;
+                    if(target.length === 0) return alert("Data kosong!");
+                    
+                    const totals = target.map(item => {
+                        if (item.isSpacer) return ""; 
+                        return (Number(item.rak)||0) + (Number(item.m1)||0) + (Number(item.m2)||0) + (Number(item.m3)||0) + (Number(item.m4)||0);
+                    }).join('\n');
+
+                    const el = document.createElement('textarea');
+                    el.value = totals;
+                    document.body.appendChild(el);
+                    el.select();
+                    try { document.execCommand('copy'); alert(`✅ ${target.length} Data disalin (Presisi Excel)!`); } 
+                    catch (err) { alert('❌ Gagal.'); }
+                    document.body.removeChild(el);
+                },
+
+                resetApp() {
+                    if(confirm("Hapus semua?")) {
+                        this.items = [];
+                        this.searchQuery = '';
+                    }
+                },
+                calcAppend(v) { this.calcDisplay += v; },
+                calcResult() { try { this.calcDisplay = eval(this.calcDisplay); } catch { this.calcDisplay = 'Error'; } }
+            }
+        }
+    </script>
+</body>
+</html>
