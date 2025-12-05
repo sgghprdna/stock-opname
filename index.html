@@ -199,11 +199,25 @@
             </div>
             <div>
                 <h1 class="font-bold text-xl leading-none">Label Pengiriman</h1>
-                <p class="text-xs text-blue-100 mt-1">Generator A6 & Box Counter</p>
+                <p class="text-xs text-blue-100 mt-1">Generator PDF A6</p>
             </div>
         </div>
 
         <div class="space-y-4">
+            
+            <div class="bg-white p-2 rounded-lg shadow-sm border border-gray-200 flex gap-2">
+                <button @click="orientation = 'landscape'" 
+                        class="flex-1 py-2 rounded text-sm font-bold flex items-center justify-center gap-2 transition"
+                        :class="orientation === 'landscape' ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-500'">
+                    <i class="fas fa-image fa-rotate-90"></i> Landscape
+                </button>
+                <button @click="orientation = 'portrait'" 
+                        class="flex-1 py-2 rounded text-sm font-bold flex items-center justify-center gap-2 transition"
+                        :class="orientation === 'portrait' ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-500'">
+                    <i class="fas fa-image"></i> Portrait
+                </button>
+            </div>
+
             <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
                 <h2 class="text-sm font-bold text-gray-800 mb-3 border-b pb-2 flex items-center gap-2">
                     <i class="fas fa-paper-plane text-blue-600"></i> PENGIRIM (FROM)
@@ -262,7 +276,7 @@
                     </div>
                     <div class="flex-1 text-xs text-gray-500 bg-gray-50 p-2 rounded border border-gray-100">
                         <i class="fas fa-info-circle text-blue-500"></i>
-                        Akan mencetak <span x-text="totalPackages" class="font-bold text-gray-900"></span> lembar PDF (Box 1 of <span x-text="totalPackages"></span>, dst).
+                        Mencetak <span x-text="totalPackages" class="font-bold text-gray-900"></span> hal. (Box 1 of <span x-text="totalPackages"></span>).
                     </div>
                 </div>
             </div>
@@ -367,7 +381,7 @@
             }
         }
 
-        // --- LOGIC SHIPPING LABEL ---
+        // --- LOGIC SHIPPING LABEL (UPDATED) ---
         function shippingApp() {
             return {
                 fromName: 'PICORA',
@@ -377,30 +391,41 @@
                 idValue: '',
                 address: '',
                 totalPackages: 1,
+                orientation: 'landscape', // Default Landscape
 
                 generatePDF() {
                     if(!this.toName) return alert("Nama Penerima wajib diisi!");
                     
                     const { jsPDF } = window.jspdf;
+                    
+                    // Setup Orientation
+                    const isLandscape = this.orientation === 'landscape';
+                    const docFormat = isLandscape ? [148, 105] : [105, 148]; // A6 Dimensions
+                    const pageWidth = isLandscape ? 148 : 105;
+                    const pageHeight = isLandscape ? 105 : 148;
+                    
                     const doc = new jsPDF({
-                        orientation: "portrait",
+                        orientation: this.orientation,
                         unit: "mm",
-                        format: [105, 148] // A6
+                        format: docFormat
                     });
 
                     for (let i = 1; i <= this.totalPackages; i++) {
                         if (i > 1) doc.addPage(); 
 
-                        // Border
+                        const margin = 5;
+                        const contentWidth = pageWidth - (margin * 2);
+
+                        // Border Halaman
                         doc.setLineWidth(0.5);
-                        doc.rect(5, 5, 95, 138);
+                        doc.rect(margin, margin, contentWidth, pageHeight - (margin * 2));
 
                         // HEADER: BOX COUNT
                         doc.setFont("helvetica", "bold");
                         doc.setFontSize(14);
-                        doc.text(`Box ${i} of ${this.totalPackages}`, 52.5, 12, { align: "center" });
+                        doc.text(`Box ${i} of ${this.totalPackages}`, pageWidth / 2, 12, { align: "center" });
                         doc.setLineWidth(0.3);
-                        doc.line(5, 15, 100, 15); 
+                        doc.line(margin, 15, pageWidth - margin, 15); 
 
                         // FROM
                         doc.setFontSize(10);
@@ -410,13 +435,16 @@
                         doc.setFont("helvetica", "normal");
                         doc.setFontSize(10);
                         doc.text(this.fromPhone, 8, 34);
-                        doc.line(5, 38, 100, 38); 
+                        doc.line(margin, 38, pageWidth - margin, 38); 
 
                         // TO
                         doc.setFont("helvetica", "bold");
                         doc.text("TO :", 8, 45);
                         doc.setFontSize(14);
-                        const toNameLines = doc.splitTextToSize(this.toName, 88);
+                        
+                        // Text Wrap yang Dinamis sesuai lebar halaman
+                        const maxTextWidth = contentWidth - 6; 
+                        const toNameLines = doc.splitTextToSize(this.toName, maxTextWidth);
                         doc.text(toNameLines, 8, 52);
                         
                         let currentY = 52 + (toNameLines.length * 6);
@@ -424,7 +452,7 @@
                         // ALAMAT
                         doc.setFont("helvetica", "normal");
                         doc.setFontSize(11);
-                        const addressLines = doc.splitTextToSize(this.address, 88);
+                        const addressLines = doc.splitTextToSize(this.address, maxTextWidth);
                         doc.text(addressLines, 8, currentY);
                         currentY += (addressLines.length * 6) + 5;
 
@@ -433,16 +461,20 @@
                         doc.setFontSize(12);
                         const labelType = this.idType === 'resi' ? 'No. Resi' : 'No. HP';
                         doc.text(`${labelType} : ${this.idValue}`, 8, currentY);
-
-                        // Footer
-                        doc.setFontSize(8);
-                        doc.setFont("helvetica", "italic");
-                        doc.setTextColor(150);
-                        doc.text("Generated by Casa & Imago App", 52.5, 141, { align: "center" });
-                        doc.setTextColor(0);
+                        
+                        // Watermark DIHAPUS sesuai request
                     }
 
-                    const fileName = `Label_${this.toName.replace(/[^a-z0-9]/gi, '_')}.pdf`;
+                    // Format Nama File: Nama_Tgl-Bln-Thn.pdf
+                    const date = new Date();
+                    const day = String(date.getDate()).padStart(2, '0');
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const year = date.getFullYear();
+                    
+                    // Bersihkan nama dari karakter aneh
+                    const safeName = this.toName.replace(/[^a-z0-9]/gi, '_').substring(0, 20);
+                    const fileName = `${safeName}_${day}-${month}-${year}.pdf`;
+                    
                     doc.save(fileName);
                 }
             }
